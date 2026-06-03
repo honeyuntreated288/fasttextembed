@@ -289,4 +289,5 @@ released by BAAI under the **MIT license**; the weights are redistributed here u
 
 ## License
 
-Code: see repository. Bundled model weights: MIT (BAAI/bge-small-en-v1.5).
+Code: **MIT** © Cemsina Guzel — see [`LICENSE`](LICENSE).
+Bundled model weights: **MIT** (BAAI/bge-small-en-v1.5).
