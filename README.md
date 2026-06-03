@@ -213,7 +213,7 @@ python tools/plot_results.py                   # regenerate assets/benchmark.png
 - ✅ **Fastest of all five tools** — highest throughput, lowest latency, and lowest RAM — on **Apple Silicon, ARM Linux, and x86 AMD**. ~1.4–2.3× ONNX Runtime throughput everywhere.
 - ✅ **SIMD on every arch**: NEON (+fp16) on ARM, AVX2+F16C on x86. x86 needs an AVX2-capable CPU (≈every cloud instance since ~2015); older x86 falls back to a correct scalar path.
 - ✅ **Released — v1.0.1 is live on all four registries**: [PyPI](https://pypi.org/project/fasttextembed/) (`pip install fasttextembed`), [npm](https://www.npmjs.com/package/fasttextembed) (`npm install fasttextembed`), [crates.io](https://crates.io/crates/fasttextembed) (`cargo add fasttextembed`), and Go (`go get github.com/cemsina/fasttextembed/bindings/go`) — all returning matching 384-dim vectors.
-- ✅ **Prebuilt pip wheels** for manylinux (x86_64 + aarch64) and macOS (arm64 + x86_64) — no compiler needed. Built in CI with a portable per-arch SIMD baseline.
+- ✅ **Prebuilt pip wheels** for manylinux (x86_64 + aarch64) and macOS (arm64) — no compiler needed. Built in CI with a portable per-arch SIMD baseline.
 - ✅ **JS: WASM + optional native addon** — the npm package runs in Node and the browser; `npm run build:native` enables the ~2× faster N-API path on Node.
 - ⚠️ Default fp16 mode matches ONNX Runtime at cosine ~0.9998 (identical ranking, not bit-identical); build with `-DFTE_FP32_ACCUM` for bit-exact (cosine 0.99999).
 - ⚠️ **No Windows wheels yet** — the engine uses POSIX threads + GCC/Clang SIMD flags; an MSVC port is the remaining packaging work. (A single-threaded fallback exists but is unverified.)

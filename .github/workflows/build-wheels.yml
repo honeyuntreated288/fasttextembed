@@ -1,6 +1,6 @@
 name: Build wheels
 
-# Builds prebuilt pip wheels (manylinux x86_64 + aarch64, macOS arm64 + x86_64) plus an sdist, so
+# Builds prebuilt pip wheels (manylinux x86_64 + aarch64, macOS arm64) plus an sdist, so
 # `pip install fasttextembed` needs no compiler. Wheels use a portable per-arch SIMD baseline
 # (FTE_PORTABLE=1): x86-64 = AVX2+FMA+F16C, aarch64 = armv8.2-a+fp16 — fast on any CPU of that arch.
 #
@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-14]
     steps:
       - uses: actions/checkout@v4
 
