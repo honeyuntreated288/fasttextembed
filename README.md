@@ -14,8 +14,7 @@ Same 384-dim vectors as the PyTorch/ONNX stacks, but with **up to 2.3× the thro
 latency, and 5–14× less RAM** — callable from **Python, Node, Go, Rust, or C**. No GPU, no PyTorch,
 no ONNX Runtime, nothing else to install.
 
-`BAAI/bge-small-en-v1.5` is a nice choice for almost 95% of projects — strong retrieval quality at a
-tiny footprint — which is exactly why FastTextEmbed ships it.
+BGE-small is a strong default for many retrieval, semantic search, and RAG applications. — which is exactly why FastTextEmbed ships it.
 
 ## Quickstart
 
