@@ -13,7 +13,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 DIM = 384
 
 # Where to fetch the model on first use. Override with FTE_MODEL_URL (a directory URL that

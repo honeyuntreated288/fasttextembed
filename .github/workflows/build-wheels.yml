@@ -1,0 +1,69 @@
+name: Build wheels
+
+# Builds prebuilt pip wheels (manylinux x86_64 + aarch64, macOS arm64 + x86_64) plus an sdist, so
+# `pip install fasttextembed` needs no compiler. Wheels use a portable per-arch SIMD baseline
+# (FTE_PORTABLE=1): x86-64 = AVX2+FMA+F16C, aarch64 = armv8.2-a+fp16 — fast on any CPU of that arch.
+#
+# Reusable: release.yml calls this (workflow_call) then publishes the uploaded artifacts. Also runs
+# standalone on push to validate the build. Windows wheels are not built yet (the engine needs an
+# MSVC/POSIX-threads port — tracked TODO).
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    paths:
+      - "bindings/python/**"
+      - "src/**"
+      - "include/**"
+      - ".github/workflows/build-wheels.yml"
+
+jobs:
+  wheels:
+    name: wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-13, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+
+      # Copy ../../src + ../../include into bindings/python/csrc so the build is self-contained
+      # inside the manylinux container (which only mounts the package directory).
+      - name: Vendor C engine into the package
+        run: bash bindings/python/vendor.sh
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21
+        with:
+          package-dir: bindings/python
+        env:
+          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "*-musllinux_* pp*"
+          CIBW_ARCHS_LINUX: auto64
+          CIBW_ARCHS_MACOS: auto
+          CIBW_ENVIRONMENT: "FTE_PORTABLE=1"
+          # Smoke test: install the wheel and load the compiled engine (no model download needed).
+          CIBW_TEST_COMMAND: 'python -c "import ctypes, fasttextembed; ctypes.CDLL(fasttextembed._find_library()); print(fasttextembed.__version__)"'
+          CIBW_BUILD_VERBOSITY: 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vendor C engine into the package
+        run: bash bindings/python/vendor.sh
+      - name: Build sdist
+        run: pipx run build --sdist
+        working-directory: bindings/python
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: bindings/python/dist/*.tar.gz

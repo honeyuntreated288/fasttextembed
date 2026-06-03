@@ -5,13 +5,26 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_options(-O3 -ffp-contract=off)
 
-# SIMD features. NOTE for publishing: -mcpu=native targets the BUILD machine and is wrong for
-# redistributable wheels. CI should override (e.g. -DCMAKE_C_FLAGS="-march=armv8.2-a+fp16" on
-# arm64, or a baseline + future runtime dispatch). Fine for local installs.
+# SIMD features.
+#  - Local installs (default): -march=native / -mcpu=native — fastest, targets THIS machine.
+#  - Redistributable wheels (FTE_PORTABLE=1): a conservative per-arch SIMD baseline that runs on
+#    any CPU of that arch, not just the build host. x86-64 baseline = AVX2+FMA+F16C (Haswell, 2013+);
+#    aarch64 baseline = armv8.2-a+fp16 (Graviton2 / Apple M1+ / modern ARM servers).
 include(CheckCCompilerFlag)
-check_c_compiler_flag("-mcpu=native" HAS_MCPU_NATIVE)
-if(HAS_MCPU_NATIVE AND NOT DEFINED ENV{FTE_PORTABLE})
-    add_compile_options(-mcpu=native)
+if(DEFINED ENV{FTE_PORTABLE})
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
+        add_compile_options(-mavx2 -mfma -mf16c)
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        add_compile_options(-march=armv8.2-a+fp16)
+    endif()
+else()
+    check_c_compiler_flag("-march=native" HAS_MARCH_NATIVE)
+    check_c_compiler_flag("-mcpu=native" HAS_MCPU_NATIVE)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64" AND HAS_MARCH_NATIVE)
+        add_compile_options(-march=native)
+    elseif(HAS_MCPU_NATIVE)
+        add_compile_options(-mcpu=native)
+    endif()
 endif()
 
 # Repo layout when building in-tree; vendored ./csrc layout for sdist / isolated builds.

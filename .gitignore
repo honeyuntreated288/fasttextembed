@@ -40,5 +40,7 @@ corpus_*.txt
 # generated WASM artifacts (built by bindings/js/build.sh; bundled at npm publish time)
 bindings/js/wasm/fte.js
 bindings/js/wasm/fte.wasm
+# native N-API addon build output (built by `npm run build:native` / node-gyp)
+bindings/js/native/build/
 bindings/python/csrc/
 bindings/rust/csrc/

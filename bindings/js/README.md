@@ -16,8 +16,15 @@ const one = model.embedOne("hello world");
 ```
 
 - `embed(texts)` — batch; `embedOne(text)` — single.
-- WASM backend is single-threaded and portable; an optional native N-API addon (`./native`) is used
-  automatically if present (faster, Node-only).
+- WASM backend is single-threaded and portable; an optional native N-API addon is used automatically
+  if present (multi-threaded, SIMD, ~2× faster — Node-only). Build it with:
+
+  ```bash
+  npm run build:native   # compiles native/ via node-gyp (needs a C compiler + Python)
+  ```
+
+  Once built, `require("fasttextembed")` loads the native addon and transparently falls back to WASM
+  if it isn't available.
 - Env: `FTE_MODEL_DIR` (local `model.fte`/`vocab.tsv`), `FTE_MODEL_URL`, `FTE_CACHE`.
 
 In the browser, pass model bytes directly: `TextEmbedding.create({ fte: Uint8Array, vocab: Uint8Array })`.

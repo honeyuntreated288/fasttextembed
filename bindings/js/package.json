@@ -1,18 +1,23 @@
 {
   "name": "fasttextembed",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast, dependency-free text embeddings (BAAI/bge-small-en-v1.5) \u2014 pure C compiled to WASM",
   "main": "index.js",
   "files": [
     "index.js",
     "wasm.js",
+    "native.js",
     "model.js",
     "wasm/fte.js",
     "wasm/fte.wasm",
+    "native/addon.c",
+    "native/binding.gyp",
+    "csrc/**",
     "README.md"
   ],
   "scripts": {
     "build": "bash build.sh",
+    "build:native": "node-gyp rebuild -C native",
     "test": "node test.js",
     "prepublishOnly": "bash build.sh"
   },

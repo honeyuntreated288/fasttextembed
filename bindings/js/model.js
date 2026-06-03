@@ -47,4 +47,19 @@ async function resolveModelBytes() {
   return out;
 }
 
-module.exports = { resolveModelBytes };
+// Returns { fte: <path>, vocab: <path> }, downloading+caching on first use.
+// Used by the native addon, which loads from files rather than memory.
+async function resolveModelPaths() {
+  const dir = process.env.FTE_MODEL_DIR;
+  if (dir) return { fte: path.join(dir, "model.fte"), vocab: path.join(dir, "vocab.tsv") };
+  const cache = cacheDir();
+  const out = {};
+  for (const name of ["model.fte", "vocab.tsv"]) {
+    const dst = path.join(cache, name);
+    if (!fs.existsSync(dst)) await download(`${DEFAULT_URL}/${name}`, dst);
+    out[name === "model.fte" ? "fte" : "vocab"] = dst;
+  }
+  return out;
+}
+
+module.exports = { resolveModelBytes, resolveModelPaths };
