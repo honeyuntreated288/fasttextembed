@@ -1,5 +1,7 @@
 # FastTextEmbed
 
+> ### 🚀 _Ship embeddings, not gigabytes._
+
 ### The fastest, lightest way to run `BAAI/bge-small-en-v1.5` — pure C, zero dependencies, ~90 MB RAM.
 
 [![PyPI](https://img.shields.io/pypi/v/fasttextembed?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/fasttextembed/)
@@ -14,9 +16,9 @@ no ONNX Runtime, nothing else to install.
 
 ## Quickstart
 
-```bash
-pip install fasttextembed
-```
+Same model, same 384-dim vectors, every language — pick yours and copy-paste:
+
+**🐍 Python** — `pip install fasttextembed`
 
 ```python
 from fasttextembed import TextEmbedding
@@ -25,8 +27,46 @@ model = TextEmbedding()                          # model auto-downloads + caches
 vectors = model.embed(["hello world", "fast"])   # list of 384-dim float vectors
 ```
 
+**🟢 Node / JS** — `npm install fasttextembed`
+
+```js
+const { TextEmbedding } = require("fasttextembed");
+
+const m = await TextEmbedding.create();
+const vecs = m.embed(["hello world", "fast"]); // array of 384-dim float vectors
+```
+
+**🐹 Go** — `go get github.com/cemsina/fasttextembed/bindings/go`
+
+```go
+import fte "github.com/cemsina/fasttextembed/bindings/go"
+
+m, _ := fte.New()
+defer m.Free()
+vecs := m.Embed([]string{"hello world", "fast"}) // [][]float32, 384-dim
+```
+
+**🦀 Rust** — `cargo add fasttextembed`
+
+```rust
+use fasttextembed::TextEmbedding;
+
+let model = TextEmbedding::new()?;
+let vecs = model.embed(&["hello world", "fast"]); // Vec<Vec<f32>>
+```
+
+**⚙️ C** — link `libfte`, include `fte/fte.h`
+
+```c
+fte_model *m;
+fte_init("model.fte", "vocab.tsv", &m);
+float out[384];
+fte_embed(m, "hello world", out);   // 384-dim unit vector
+fte_free(m);
+```
+
 That's it. The ~64 MB model downloads once and is cached; there are no other dependencies.
-**[Other languages ↓](#-one-tiny-engine-every-language) · [Benchmarks ↓](#benchmark-top-embedding-tools-same-model-same-corpus) · [How it works ↓](#how-it-works)**
+**[Binding details ↓](#-one-tiny-engine-every-language) · [Benchmarks ↓](#benchmark-top-embedding-tools-same-model-same-corpus) · [How it works ↓](#how-it-works)**
 
 > **Why it exists —** text embedding is the hot path of modern AI: agentic and RAG systems generate
 > **millions to billions of vectors**, and at that scale the embedding step dominates CPU time and the
