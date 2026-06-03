@@ -153,7 +153,7 @@ The result is the **same embeddings** — cosine ≥ 0.9998 vs ONNX Runtime, and
 
 ## The journey (what we actually solved)
 
-The interesting part wasn't the first version — it was closing the gap to ONNX Runtime, which is years of Microsoft optimization. We did it empirically, by profiling, and we kept honest notes on what worked and what didn't:
+**Chapter one — closing the gap to ONNX Runtime.** The interesting part wasn't the first version — it was catching years of Microsoft optimization. We did it empirically, by profiling, and kept honest notes on what worked and what didn't:
 
 - ✅ **Cache-friendly matmul** ordering: 8 → 68 docs/s.
 - ✅ **fp16 weights + NEON widening**: halved memory bandwidth (`model.fte` 133 → 64 MB).
@@ -161,6 +161,13 @@ The interesting part wasn't the first version — it was closing the gap to ONNX
 - ✅ **Multithreading**: one doc per core (throughput) + intra-doc matmul splitting (latency).
 - ❌ **fp16-accumulate lane-FMA** (ONNX Runtime's exact kernel technique): we _ported it and it made us slower_ — its single-accumulator dependency chain stalls, while our simpler kernel keeps more independent chains. Reverted. (Also: we verified ONNX Runtime uses C++ **intrinsics**, not hand assembly, for fp16 on these CPUs — so there was never an assembly wall.)
 - ✅ **The decisive fix — vectorizing the elementwise ops.** Profiling showed **24% of per-document time was scalar** LayerNorm / SkipLayerNorm / **GELU** (a scalar `tanhf` called ~180k times per doc). Worse, those ran _serially_ while the matmuls were parallelized, so by Amdahl's law they dominated latency. ONNX Runtime vectorizes them; our first version didn't. Adding vectorized `exp`/`tanh` and reductions (NEON + AVX2) cut that 24% → 4%, and cut single-document latency roughly in half. **This is what finally put us ahead of ONNX Runtime on every metric.**
+
+**Chapter two — shipping it everywhere.** A fast engine nobody can `pip install` isn't useful, so the second half of the work was packaging one C core into four ecosystems without giving up the zero-dependency promise:
+
+- ✅ **Four bindings, one engine**: published **v1.0.1** to **PyPI, npm, crates.io, and Go** — each calling the same C library, each returning matching 384-dim vectors, each with zero runtime dependencies.
+- ✅ **Portable _and_ native JS**: the npm package ships the engine compiled to **WebAssembly** (runs in Node *and* the browser), plus an optional **N-API native addon** that's ~2× faster on Node.
+- ✅ **Prebuilt wheels, no compiler needed**: `pip install fasttextembed` pulls a prebuilt wheel for manylinux (x86_64 + aarch64) and macOS (arm64 + x86_64). The trick was a **portable per-arch SIMD baseline** (AVX2+FMA+F16C on x86, armv8.2-a+fp16 on ARM) instead of `-march=native`, so one wheel stays fast on _any_ CPU of that arch — not just the build machine.
+- ✅ **One-click releases**: cutting a GitHub Release now publishes all four registries automatically (GitHub Actions builds the wheels, the WASM module, and the crate, then tags the Go module).
 
 ## How it works
 
@@ -223,9 +230,11 @@ python tools/plot_results.py                   # regenerate assets/benchmark.png
 
 - ✅ **Fastest of all five tools** — highest throughput, lowest latency, and lowest RAM — on **Apple Silicon, ARM Linux, and x86 AMD**. ~1.4–2.3× ONNX Runtime throughput everywhere.
 - ✅ **SIMD on every arch**: NEON (+fp16) on ARM, AVX2+F16C on x86. x86 needs an AVX2-capable CPU (≈every cloud instance since ~2015); older x86 falls back to a correct scalar path.
-- ✅ **Bindings (v1.0.0)** for Python, Node/JS (WASM), Go, and Rust — all tested, all returning matching 384-dim vectors.
+- ✅ **Released — v1.0.1 is live on all four registries**: [PyPI](https://pypi.org/project/fasttextembed/) (`pip install fasttextembed`), [npm](https://www.npmjs.com/package/fasttextembed) (`npm install fasttextembed`), [crates.io](https://crates.io/crates/fasttextembed) (`cargo add fasttextembed`), and Go (`go get github.com/cemsina/fasttextembed/bindings/go`) — all returning matching 384-dim vectors.
+- ✅ **Prebuilt pip wheels** for manylinux (x86_64 + aarch64) and macOS (arm64 + x86_64) — no compiler needed. Built in CI with a portable per-arch SIMD baseline.
+- ✅ **JS: WASM + optional native addon** — the npm package runs in Node and the browser; `npm run build:native` enables the ~2× faster N-API path on Node.
 - ⚠️ Default fp16 mode matches ONNX Runtime at cosine ~0.9998 (identical ranking, not bit-identical); build with `-DFTE_FP32_ACCUM` for bit-exact (cosine 0.99999).
-- ⚠️ **Publishing in progress** — packages are being released one platform at a time. Until a release is cut, install from source (the bindings download the model from the `v1.0.0` GitHub release). A JS native (N-API) addon and multi-platform wheel/prebuild CI are the remaining packaging work.
+- ⚠️ **No Windows wheels yet** — the engine uses POSIX threads + GCC/Clang SIMD flags; an MSVC port is the remaining packaging work. (A single-threaded fallback exists but is unverified.)
 - Scope is deliberately **one model, text only**. That constraint is the whole point.
 
 ## Bundled model
