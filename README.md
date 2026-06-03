@@ -1,6 +1,6 @@
 # FastTextEmbed
 
-> ### 🚀 _Ship fast._
+> ### 🚀 _Ship embeddings fast, not gigabytes._
 
 ### The fastest, lightest way to run `BAAI/bge-small-en-v1.5` — pure C, zero dependencies, ~90 MB RAM.
 
