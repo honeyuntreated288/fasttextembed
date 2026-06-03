@@ -151,22 +151,6 @@ What this buys us:
 
 The result is the **same embeddings** — cosine ≥ 0.9998 vs ONNX Runtime, and in fp32 mode it tracks the original PyTorch model *even more closely than ONNX Runtime itself does* (cosine 0.99999) — at a fraction of the time and memory.
 
-## The journey (what we actually solved)
-
-**Closing the gap to ONNX Runtime** — done empirically, by profiling:
-
-- ✅ **Cache-friendly, register-blocked matmul** with fp16 weights: the core speedup (8 → 68+ docs/s) at half the memory bandwidth.
-- ✅ **Multithreading**: one doc per core (throughput) + intra-doc splitting (latency).
-- ❌ **fp16-accumulate lane-FMA** (ONNX Runtime's exact kernel): ported it, it was _slower_, reverted.
-- ✅ **The decisive fix — vectorizing the elementwise ops** (LayerNorm, GELU). They were ~24% of per-doc time, scalar, and serial; vectorizing them roughly halved latency and **put us ahead of ONNX Runtime on every metric**.
-
-**Then shipping it** — one C core, four ecosystems, still zero runtime dependencies:
-
-- ✅ Published **v1.0.1** to **PyPI, npm, crates.io, and Go**, all returning matching vectors.
-- ✅ JS ships **WASM** (Node + browser) plus an optional **native addon** (~2× faster on Node).
-- ✅ **Prebuilt wheels** (manylinux + macOS) — a portable per-arch SIMD baseline keeps one wheel fast on any CPU.
-- ✅ **One-click releases**: a GitHub Release publishes all four registries automatically.
-
 ## How it works
 
 ```
